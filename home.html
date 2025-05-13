@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login</title>
+<style>
+        body {
+            background: #f2f2f2;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+        }
+        .chatbox {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .chatbox h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 12px 20px;
+            border: none;
+            background: #007BFF;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .flash {
+            color: red;
+            margin-bottom: 10px;
+        }
+</style>
+</head>
+<body>
+<div class="chatbox">
+<h2>👋 Hello! What’s your username?</h2>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+<div class="flash">{{ messages[0] }}</div>
+            {% endif %}
+        {% endwith %}
+<form method="post" action="{{ url_for('login') }}">
+<input type="text" name="username" placeholder="Enter username" required />
+<button type="submit">Continue</button>
+</form>
+</div>
+</body>
+</html>

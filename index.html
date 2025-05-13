@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jira Assistant</title>
+<style>
+
+        body {
+
+            font-family: Arial, sans-serif;
+
+            margin: 0;
+
+            padding: 20px;
+
+            background-color: #f5f5f5;
+
+        }
+
+        .container {
+
+            max-width: 1200px;
+
+            margin: 0 auto;
+
+            background-color: white;
+
+            padding: 20px;
+
+            border-radius: 8px;
+
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+
+            position: relative; /* Added for positioning */
+
+        }
+
+        h1 {
+
+            color: #0052cc;
+
+        }
+
+        .issues-list {
+
+            margin-bottom: 30px;
+
+        }
+
+        .issue {
+
+            border: 1px solid #ddd;
+
+            padding: 15px;
+
+            margin-bottom: 10px;
+
+            border-radius: 4px;
+
+            background-color: #fafafa;
+
+        }
+
+        .issue h3 {
+
+            margin-top: 0;
+
+            color: #172b4d;
+
+        }
+
+        .chat-container {
+
+            border: 1px solid #ddd;
+
+            border-radius: 4px;
+
+            padding: 15px;
+
+            background-color: #fafafa;
+
+            margin-top: 20px;
+
+        }
+
+        .chat-box {
+
+            height: 300px;
+
+            overflow-y: auto;
+
+            border: 1px solid #ddd;
+
+            padding: 10px;
+
+            margin-bottom: 10px;
+
+            background-color: white;
+
+            border-radius: 4px;
+
+        }
+
+        .message {
+
+            margin-bottom: 10px;
+
+            padding: 8px 12px;
+
+            border-radius: 4px;
+
+        }
+
+        .user-message {
+
+            background-color: #e3f2fd;
+
+            margin-left: 20%;
+
+            text-align: right;
+
+        }
+
+        .bot-message {
+
+            background-color: #f1f1f1;
+
+            margin-right: 20%;
+
+        }
+
+        .input-area {
+
+            display: flex;
+
+            gap: 10px;
+
+        }
+
+        #user-input {
+
+            flex-grow: 1;
+
+            padding: 8px;
+
+            border: 1px solid #ddd;
+
+            border-radius: 4px;
+
+        }
+
+        button {
+
+            background-color: #0052cc;
+
+            color: white;
+
+            border: none;
+
+            padding: 8px 15px;
+
+            border-radius: 4px;
+
+            cursor: pointer;
+
+        }
+
+        button:hover {
+
+            background-color: #0065ff;
+
+        }
+
+        .hidden {
+
+            display: none;
+
+        }
+
+        .back-button, .signout-button {
+
+            position: fixed;
+
+            bottom: 20px;
+
+            color: white;
+
+            padding: 10px 15px;
+
+            border-radius: 50%;
+
+            font-size: 16px;
+
+            text-align: center;
+
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+            cursor: pointer;
+
+        }
+
+        .back-button {
+
+            right: 20px;
+
+            background-color: #0052cc;
+
+        }
+
+        .back-button:hover {
+
+            background-color: #0065ff;
+
+        }
+
+        .signout-button {
+
+            right: 80px;
+
+            background-color: #d32f2f;
+
+        }
+
+        .signout-button:hover {
+
+            background-color: #f44336;
+
+        }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Welcome, {{ username }}!</h1>
+<div class="issues-list">
+<h2>Your Jira Issues</h2>
+
+        {% for issue in issues %}
+<div class="issue">
+<h3>{{ issue.Title }} ({{ issue.ID }})</h3>
+<p><strong>Status:</strong> {{ issue.Status }}</p>
+<p><strong>Description:</strong> {{ issue.Description }}</p>
+<button onclick="selectIssue('{{ issue.ID }}')">Chat about this issue</button>
+</div>
+
+        {% endfor %}
+</div>
+<div class="chat-container">
+<h2>Jira Assistant</h2>
+<div class="chat-box" id="chat-box"></div>
+<div class="input-area">
+<input type="text" id="user-input" placeholder="Ask me anything about your Jira issues...">
+<button onclick="sendMessage()">Send</button>
+</div>
+<input type="hidden" id="current-issue" value="">
+</div>
+</div>
+
+<!-- Back Button -->
+<div class="back-button" onclick="goBack()">&#8592;</div>
+
+<!-- Sign Out Button -->
+<div class="signout-button" onclick="signOut()">&#x2716;</div>
+
+<script>
+
+    let conversationHistory = [];
+
+    function selectIssue(issueId) {
+
+        document.getElementById('current-issue').value = issueId;
+
+        addMessage(`You selected issue ${issueId}. Ask me anything about it.`, 'bot');
+
+    }
+
+    function addMessage(text, sender) {
+
+        const chatBox = document.getElementById('chat-box');
+
+        const messageDiv = document.createElement('div');
+
+        messageDiv.className = `message ${sender}-message`;
+
+        messageDiv.textContent = text;
+
+        chatBox.appendChild(messageDiv);
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Add to conversation history
+
+        conversationHistory.push({sender, text});
+
+    }
+
+    function sendMessage() {
+
+        const userInput = document.getElementById('user-input');
+
+        const message = userInput.value.trim();
+
+        const issueId = document.getElementById('current-issue').value;
+
+        if (message) {
+
+            addMessage(message, 'user');
+
+            userInput.value = '';
+
+            // Show typing indicator
+
+            const typingIndicator = document.createElement('div');
+
+            typingIndicator.className = 'message bot-message';
+
+            typingIndicator.textContent = 'Thinking...';
+
+            document.getElementById('chat-box').appendChild(typingIndicator);
+
+            fetch('/get_response', {
+
+                method: 'POST',
+
+                headers: {
+
+                    'Content-Type': 'application/x-www-form-urlencoded',
+
+                },
+
+                body: `question=${encodeURIComponent(message)}&issue_id=${issueId}`
+
+            })
+
+            .then(response => response.json())
+
+            .then(data => {
+
+                // Remove typing indicator
+
+                typingIndicator.remove();
+
+                if (data.response) {
+
+                    // Split response by newlines for better formatting
+
+                    const responses = data.response.split('\n');
+
+                    responses.forEach((line, index) => {
+
+                        if (line.trim()) {
+
+                            // Add a small delay between multiline responses for better UX
+
+                            setTimeout(() => {
+
+                                addMessage(line, 'bot');
+
+                            }, index * 100);
+
+                        }
+
+                    });
+
+                }
+
+            })
+
+            .catch(error => {
+
+                typingIndicator.remove();
+
+                addMessage('Sorry, there was an error processing your request.', 'bot');
+
+                console.error('Error:', error);
+
+            });
+
+        }
+
+    }
+
+    function goBack() {
+
+        window.location.href = '/';
+
+    }
+
+    function signOut() {
+
+        window.location.href = '/logout'; // Redirect to logout route
+
+    }
+
+    // Allow pressing Enter to send message
+
+    document.getElementById('user-input').addEventListener('keypress', function(e) {
+
+        if (e.key === 'Enter') {
+
+            sendMessage();
+
+        }
+
+    });
+</script>
+</body>
+</html>
+
+home.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login</title>
+<style>
+
+        body {
+
+            background: #f2f2f2;
+
+            font-family: 'Arial', sans-serif;
+
+            display: flex;
+
+            height: 100vh;
+
+            justify-content: center;
+
+            align-items: center;
+
+        }
+
+        .chatbox {
+
+            background: white;
+
+            padding: 30px;
+
+            border-radius: 10px;
+
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+        }
+
+        .chatbox h2 {
+
+            margin-bottom: 20px;
+
+            color: #333;
+
+        }
+
+        input[type="text"] {
+
+            width: 100%;
+
+            padding: 12px;
+
+            margin-bottom: 10px;
+
+            border-radius: 5px;
+
+            border: 1px solid #ccc;
+
+        }
+
+        button {
+
+            padding: 12px 20px;
+
+            border: none;
+
+            background: #007BFF;
+
+            color: white;
+
+            border-radius: 5px;
+
+            cursor: pointer;
+
+        }
+
+        .flash {
+
+            color: red;
+
+            margin-bottom: 10px;
+
+        }
+</style>
+</head>
+<body>
+<div class="chatbox">
+<h2>👋 Hello! What’s your username?</h2>
+
+        {% with messages = get_flashed_messages() %}
+
+            {% if messages %}
+<div class="flash">{{ messages[0] }}</div>
+
+            {% endif %}
+
+        {% endwith %}
+<form method="post" action="{{ url_for('login') }}">
+<input type="text" name="username" placeholder="Enter username" required />
+<button type="submit">Continue</button>
+</form>
+</div>
+</body>
+</html>
