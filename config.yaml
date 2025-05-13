@@ -1,0 +1,21 @@
+# Application Configuration
+app:
+  secret_key: "supersecretkey"
+  debug: true
+  host: "127.0.0.1"
+  port: 5000
+
+# Jira Configuration
+jira:
+  server: "https://cognizant-team-pvz8s0zc.atlassian.net"
+  username: "ambati.reddy2@cognizant.com"
+  api_token: "ATATT3xFfGF0qgmjT1k4KwW5t-rOo5-pSSaXXWu5CdWaueMpMsWdb0EL_1p_FuVQvqKggFzKzPsgFW-89PteqwjJLpEx9euuCSYcxuUdspyL3d3RTdNXjranCNQjaComoqz8II7U9PU-iIDPwfb2x6a-Wa_nhxA6Xe3vQE-OYQJK8G7pFxRu2X0=380B44E7"
+  project_key: "CPG"
+
+# File Paths
+files:
+  excel_file_path: "C:\\Users\\tejith\\Downloads\\text.xlsx"
+
+# Model Configuration
+model:
+  name: "deepseek-r1:7b"
